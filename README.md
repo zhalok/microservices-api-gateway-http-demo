@@ -29,3 +29,6 @@ Each service owns its own Postgres database. Only the gateway is exposed to the 
 ## Try it
     curl -XPOST localhost:8080/bookings -H 'content-type: application/json' \
       -d '{"ticket_id":1,"user_name":"alice"}'
+
+## Seed data
+    ./scripts/seed.sh   # wipes tickets + bookings, inserts 10 tickets each for 3 events
