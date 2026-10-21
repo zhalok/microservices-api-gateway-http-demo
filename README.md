@@ -32,3 +32,7 @@ Each service owns its own Postgres database. Only the gateway is exposed to the 
 
 ## Seed data
     ./scripts/seed.sh   # wipes tickets + bookings, inserts 10 tickets each for 3 events
+
+## Frontend (React + Vite)
+    cd frontend && npm install && npm run dev   # http://localhost:5173
+The dev server proxies `/tickets` and `/bookings` to the gateway (`GATEWAY_URL`, default `http://localhost:8080`).
