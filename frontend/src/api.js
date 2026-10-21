@@ -1,4 +1,5 @@
 const TOKEN_KEY = "token";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
@@ -9,7 +10,7 @@ export const setUnauthorizedHandler = (fn) => (onUnauthorized = fn);
 
 async function request(path, options = {}) {
   const token = getToken();
-  const res = await fetch(path, {
+  const res = await fetch(API_URL + path, {
     ...options,
     headers: {
       "content-type": "application/json",

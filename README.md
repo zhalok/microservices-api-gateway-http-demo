@@ -41,4 +41,4 @@ Each service owns its own Postgres database. Only the gateway is exposed to the 
 
 ## Frontend (React + Vite)
     cd frontend && npm install && npm run dev   # http://localhost:5173
-The dev server proxies `/tickets` and `/bookings` to the gateway (`GATEWAY_URL`, default `http://localhost:8080`).
+The browser calls the gateway directly at `VITE_API_URL` (default `http://localhost:8080`). The gateway allows the dev/preview origins via CORS (`CORS_ORIGIN`, default `http://localhost:5173,http://localhost:4173`).

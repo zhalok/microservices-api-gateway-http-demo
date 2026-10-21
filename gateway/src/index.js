@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const cors = require("cors");
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const { createProxyMiddleware } = require("http-proxy-middleware");
@@ -20,6 +21,11 @@ const safeEqual = (a, b) => {
 };
 
 const app = express();
+
+// The browser calls the gateway directly (cross-origin). Must come before auth so
+// preflight OPTIONS requests, which carry no token, are answered. CORS_ORIGIN: comma-separated list, or "*".
+const origins = (process.env.CORS_ORIGIN || "http://localhost:5173,http://localhost:4173").split(",");
+app.use(cors({ origin: origins.includes("*") ? true : origins }));
 
 app.use((req, _res, next) => {
   console.log(`${req.method} ${req.originalUrl}`);
