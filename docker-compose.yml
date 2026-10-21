@@ -1,5 +1,6 @@
 services:
   ticket-db:
+    container_name: ticket-db
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
@@ -11,6 +12,7 @@ services:
       retries: 10
 
   booking-db:
+    container_name: booking-db
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
@@ -22,6 +24,7 @@ services:
       retries: 10
 
   ticket-service:
+    container_name: ticket-service
     build: ./ticket-service
     environment:
       PORT: 3001
@@ -31,6 +34,7 @@ services:
         condition: service_healthy
 
   booking-service:
+    container_name: booking-service
     build: ./booking-service
     environment:
       PORT: 3002
@@ -43,6 +47,7 @@ services:
         condition: service_started
 
   gateway:
+    container_name: gateway
     build: ./gateway
     ports:
       - "8080:8080"
