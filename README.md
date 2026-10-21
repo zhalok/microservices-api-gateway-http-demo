@@ -1,9 +1,13 @@
 # Ticket Booking – Microservices + API Gateway demo
 
-```
-client ──> gateway :8080 ─┬─> ticket-service  :3001 ──> ticket-db  (Postgres)
-                          └─> booking-service :3002 ──> booking-db (Postgres)
-                                   └── HTTP ──> ticket-service
+```mermaid
+flowchart LR
+    client([Client]) --> gateway["Gateway :8080"]
+    gateway --> ticket["ticket-service :3001"]
+    gateway --> booking["booking-service :3002"]
+    ticket --> ticketdb[("ticket-db<br/>Postgres")]
+    booking --> bookingdb[("booking-db<br/>Postgres")]
+    booking -- HTTP --> ticket
 ```
 
 Each service owns its own Postgres database. Only the gateway is exposed to the host.
@@ -32,8 +36,20 @@ Each service owns its own Postgres database. Only the gateway is exposed to the 
 3. Insert booking row; if that fails, the ticket is released again
 
 ## Try it
-    curl -XPOST localhost:8080/bookings -H 'content-type: application/json' \
+Log in and capture the JWT (requires `jq`):
+
+    TOKEN=$(curl -s -XPOST localhost:8080/auth/login -H 'content-type: application/json' \
+      -d '{"username":"alice","password":"alice123"}' | jq -r .token)
+
+Check who you are, then call a protected route:
+
+    curl localhost:8080/auth/me -H "Authorization: Bearer $TOKEN"
+
+    curl -XPOST localhost:8080/bookings -H "Authorization: Bearer $TOKEN" \
+      -H 'content-type: application/json' \
       -d '{"ticket_id":1,"user_name":"alice"}'
+
+Without a valid token, protected routes return `401`.
 
 ## Seed data
     ./scripts/seed.sh   # wipes tickets + bookings, inserts 10 tickets each for 3 events
