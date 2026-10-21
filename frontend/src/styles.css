@@ -17,3 +17,9 @@ input { padding: 6px 10px; border: 1px solid #c8ccd2; border-radius: 6px; }
 table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; }
 th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eceef1; }
 .muted { color: #8b9097; }
+.login { max-width: 320px; }
+.login form { display: flex; flex-direction: column; gap: 12px; }
+.login label { display: flex; flex-direction: column; gap: 4px; }
+button { padding: 6px 12px; border-radius: 6px; border: 1px solid #2f6fed; background: #2f6fed; color: #fff; cursor: pointer; }
+button:disabled { opacity: 0.6; cursor: default; }
+.name-row button { background: #fff; color: #2f6fed; margin-left: 8px; }

@@ -11,6 +11,11 @@ Each service owns its own Postgres database. Only the gateway is exposed to the 
 ## Run
     docker compose up --build
 
+## Auth
+- **Public (browser ⇄ gateway):** `POST /auth/login {username, password}` returns a JWT (HS256, 1h). Every other route needs `Authorization: Bearer <jwt>`. Demo users come from `AUTH_USERS` (default `alice:alice123,bob:bob123`); `GET /auth/me` returns the current user.
+- **Internal (gateway ⇄ services):** services are only reachable on the private Docker network, so the gateway is the single auth point. It verifies the JWT, strips it, and forwards the username as `X-User`.
+- Secrets: set `JWT_SECRET` in the environment (compose has an insecure dev default).
+
 ## API (all via the gateway, http://localhost:8080)
 | Method | Path | Notes |
 |---|---|---|
@@ -36,4 +41,4 @@ Each service owns its own Postgres database. Only the gateway is exposed to the 
 
 ## Frontend (React + Vite)
     cd frontend && npm install && npm run dev   # http://localhost:5173
-The dev server proxies `/tickets` and `/bookings` to the gateway (`GATEWAY_URL`, default `http://localhost:8080`).
+The browser calls the gateway directly at `VITE_API_URL` (default `http://localhost:8080`). The gateway allows the dev/preview origins via CORS (`CORS_ORIGIN`, default `http://localhost:5173,http://localhost:4173`).
