@@ -4,6 +4,14 @@ const { pool, init } = require("./db");
 const app = express();
 app.use(express.json());
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - start}ms`);
+  });
+  next();
+});
+
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 // List tickets, optionally filtered: /tickets?status=available

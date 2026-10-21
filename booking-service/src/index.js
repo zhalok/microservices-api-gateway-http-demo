@@ -6,6 +6,14 @@ const TICKET_SERVICE_URL = process.env.TICKET_SERVICE_URL;
 const app = express();
 app.use(express.json());
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - start}ms`);
+  });
+  next();
+});
+
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 app.get("/bookings", async (_req, res) => {
