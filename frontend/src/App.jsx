@@ -1,10 +1,40 @@
 import { useCallback, useEffect, useState } from "react";
-import { bookTicket, getBookings, getTickets } from "./api.js";
+import { bookTicket, clearToken, getBookings, getTickets, getToken, setUnauthorizedHandler } from "./api.js";
+import Login from "./Login.jsx";
+
+// The JWT's `sub` claim is the username; decode it so a page reload keeps the session.
+function usernameFromToken(token) {
+  try {
+    const { sub, exp } = JSON.parse(atob(token.split(".")[1]));
+    return exp * 1000 > Date.now() ? sub : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function App() {
+  const [user, setUser] = useState(() => {
+    const token = getToken();
+    return token ? usernameFromToken(token) : null;
+  });
+
+  useEffect(() => setUnauthorizedHandler(() => setUser(null)), []);
+
+  if (!user) return <Login onLogin={setUser} />;
+  return (
+    <Tickets
+      user={user}
+      onLogout={() => {
+        clearToken();
+        setUser(null);
+      }}
+    />
+  );
+}
+
+function Tickets({ user, onLogout }) {
   const [tickets, setTickets] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [userName, setUserName] = useState("");
   const [message, setMessage] = useState(null); // { type: "ok" | "error", text }
   const [busyId, setBusyId] = useState(null);
 
@@ -23,14 +53,10 @@ export default function App() {
   }, [load]);
 
   async function handleBook(ticket) {
-    if (!userName.trim()) {
-      setMessage({ type: "error", text: "Enter your name first." });
-      return;
-    }
     setBusyId(ticket.id);
     try {
-      await bookTicket(ticket.id, userName.trim());
-      setMessage({ type: "ok", text: `Booked ticket #${ticket.id} for ${userName.trim()}.` });
+      await bookTicket(ticket.id, user);
+      setMessage({ type: "ok", text: `Booked ticket #${ticket.id} for ${user}.` });
     } catch (e) {
       setMessage({ type: "error", text: e.message });
     } finally {
@@ -52,10 +78,8 @@ export default function App() {
       <h1>🎟️ Ticket Booking</h1>
 
       <div className="name-row">
-        <label>
-          Your name{" "}
-          <input value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="alice" />
-        </label>
+        Signed in as <strong>{user}</strong>{" "}
+        <button onClick={onLogout}>Log out</button>
       </div>
 
       {message && <p className={`message ${message.type}`}>{message.text}</p>}

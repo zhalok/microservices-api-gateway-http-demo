@@ -48,6 +48,8 @@ services:
       - "8080:8080"
     environment:
       PORT: 8080
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-change-me}
+      AUTH_USERS: ${AUTH_USERS:-alice:alice123,bob:bob123}
       TICKET_SERVICE_URL: http://ticket-service:3001
       BOOKING_SERVICE_URL: http://booking-service:3002
     depends_on:
