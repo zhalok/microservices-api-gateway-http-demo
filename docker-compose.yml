@@ -1,0 +1,55 @@
+services:
+  ticket-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ticketdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ticketdb"]
+      interval: 3s
+      retries: 10
+
+  booking-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: bookingdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bookingdb"]
+      interval: 3s
+      retries: 10
+
+  ticket-service:
+    build: ./ticket-service
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgres://postgres:postgres@ticket-db:5432/ticketdb
+    depends_on:
+      ticket-db:
+        condition: service_healthy
+
+  booking-service:
+    build: ./booking-service
+    environment:
+      PORT: 3002
+      DATABASE_URL: postgres://postgres:postgres@booking-db:5432/bookingdb
+      TICKET_SERVICE_URL: http://ticket-service:3001
+    depends_on:
+      booking-db:
+        condition: service_healthy
+      ticket-service:
+        condition: service_started
+
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      TICKET_SERVICE_URL: http://ticket-service:3001
+      BOOKING_SERVICE_URL: http://booking-service:3002
+    depends_on:
+      - ticket-service
+      - booking-service
