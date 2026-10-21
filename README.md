@@ -32,6 +32,7 @@ Each service owns its own Postgres database. Only the gateway is exposed to the 
 
 ## Seed data
     ./scripts/seed.sh   # wipes tickets + bookings, inserts 10 tickets each for 3 events
+    ./scripts/cleanup.sh   # wipes tickets + bookings, leaves tables empty
 
 ## Frontend (React + Vite)
     cd frontend && npm install && npm run dev   # http://localhost:5173
