@@ -1,3 +1,4 @@
+require("./tracing") // must come first so http/express get instrumented
 const crypto = require("crypto");
 const cors = require("cors");
 const express = require("express");
