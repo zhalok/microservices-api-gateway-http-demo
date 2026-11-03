@@ -23,15 +23,27 @@ services:
       interval: 3s
       retries: 10
 
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:1.62.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686" # Jaeger UI
+
   ticket-service:
     container_name: ticket-service
     build: ./ticket-service
     environment:
       PORT: 3001
       DATABASE_URL: postgres://postgres:postgres@ticket-db:5432/ticketdb
+      OTEL_SERVICE_NAME: ticket-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     depends_on:
       ticket-db:
         condition: service_healthy
+      jaeger:
+        condition: service_started
 
   booking-service:
     container_name: booking-service

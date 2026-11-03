@@ -4,6 +4,12 @@
   "private": true,
   "main": "src/index.js",
   "dependencies": {
+    "@opentelemetry/api": "^1.10.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.300.0",
+    "@opentelemetry/instrumentation-express": "^0.72.0",
+    "@opentelemetry/instrumentation-http": "^0.300.0",
+    "@opentelemetry/instrumentation-pg": "^0.77.0",
+    "@opentelemetry/sdk-node": "^0.300.0",
     "express": "^4.19.2",
     "pg": "^8.12.0"
   }
