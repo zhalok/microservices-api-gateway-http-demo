@@ -73,3 +73,11 @@ services:
     depends_on:
       - ticket-service
       - booking-service
+
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    ports:
+      - "5173:80" # served on 5173 so it matches the gateway's default CORS_ORIGIN
+    depends_on:
+      - gateway
