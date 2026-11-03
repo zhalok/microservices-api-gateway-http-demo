@@ -12,6 +12,9 @@ flowchart LR
 
 Each service owns its own Postgres database. Only the gateway is exposed to the host.
 
+## Services
+The gateway, ticket-service and booking-service are written in Go (standard library `net/http`, `pgx`, `golang-jwt`; ticket-service is traced with OpenTelemetry). The frontend is still React.
+
 ## Run
     docker compose up --build
 
