@@ -8,6 +8,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
@@ -34,6 +35,7 @@ func Init(ctx context.Context) (func(context.Context) error, error) {
 		sdktrace.WithResource(resource.NewSchemaless(semconv.ServiceName(name))),
 	)
 	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(propagation.TraceContext{}) // so trace context crosses service calls
 	tracer = tp.Tracer("ticket-service")
 	return tp.Shutdown, nil
 }

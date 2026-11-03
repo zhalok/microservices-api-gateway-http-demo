@@ -6,6 +6,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	"ticket-service/internal/httperr"
+	"ticket-service/internal/model"
 	"ticket-service/internal/repository"
 	"ticket-service/internal/tracing"
 )
@@ -18,16 +19,16 @@ func NewTicketService(repo *repository.TicketRepository) *TicketService {
 
 func isValidStatus(s string) bool { return s == "available" || s == "booked" }
 
-func (s *TicketService) List(ctx context.Context, status string) ([]repository.Ticket, error) {
+func (s *TicketService) List(ctx context.Context, status string) ([]model.Ticket, error) {
 	return tracing.WithSpan(ctx, "TicketService.list", []attribute.KeyValue{attribute.String("ticket.status", status)},
-		func(ctx context.Context) ([]repository.Ticket, error) {
+		func(ctx context.Context) ([]model.Ticket, error) {
 			return s.repo.FindAll(ctx, status)
 		})
 }
 
-func (s *TicketService) Get(ctx context.Context, id int) (*repository.Ticket, error) {
+func (s *TicketService) Get(ctx context.Context, id int) (*model.Ticket, error) {
 	return tracing.WithSpan(ctx, "TicketService.get", []attribute.KeyValue{attribute.Int("ticket.id", id)},
-		func(ctx context.Context) (*repository.Ticket, error) {
+		func(ctx context.Context) (*model.Ticket, error) {
 			t, err := s.repo.FindByID(ctx, id)
 			if err != nil {
 				return nil, err
@@ -39,9 +40,9 @@ func (s *TicketService) Get(ctx context.Context, id int) (*repository.Ticket, er
 		})
 }
 
-func (s *TicketService) Create(ctx context.Context, event, price string) (*repository.Ticket, error) {
+func (s *TicketService) Create(ctx context.Context, event, price string) (*model.Ticket, error) {
 	return tracing.WithSpan(ctx, "TicketService.create", nil,
-		func(ctx context.Context) (*repository.Ticket, error) {
+		func(ctx context.Context) (*model.Ticket, error) {
 			if event == "" || price == "" {
 				return nil, httperr.New(400, "event and price are required")
 			}
@@ -51,9 +52,9 @@ func (s *TicketService) Create(ctx context.Context, event, price string) (*repos
 
 // Update with ExpectedStatus is a compare-and-set, so two concurrent bookings
 // can't both flip the same ticket to 'booked'.
-func (s *TicketService) Update(ctx context.Context, id int, p repository.UpdateParams) (*repository.Ticket, error) {
+func (s *TicketService) Update(ctx context.Context, id int, p model.UpdateParams) (*model.Ticket, error) {
 	return tracing.WithSpan(ctx, "TicketService.update", []attribute.KeyValue{attribute.Int("ticket.id", id)},
-		func(ctx context.Context) (*repository.Ticket, error) {
+		func(ctx context.Context) (*model.Ticket, error) {
 			if p.Status != nil && !isValidStatus(*p.Status) {
 				return nil, httperr.New(400, "status must be 'available' or 'booked'")
 			}

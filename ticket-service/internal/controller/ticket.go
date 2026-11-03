@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"ticket-service/internal/httperr"
-	"ticket-service/internal/repository"
+	"ticket-service/internal/model"
 	"ticket-service/internal/service"
 	"ticket-service/internal/tracing"
 )
@@ -43,11 +43,11 @@ func (c *TicketController) handle(span string, h handler) http.HandlerFunc {
 		})
 		if err != nil {
 			if st := httperr.Status(err); st < 500 {
-				writeJSON(w, st, map[string]string{"error": err.Error()})
+				writeJSON(w, st, model.ErrorResponse{Error: err.Error()})
 				return
 			}
 			log.Println(err)
-			writeJSON(w, 500, map[string]string{"error": "internal error"})
+			writeJSON(w, 500, model.ErrorResponse{Error: "internal error"})
 			return
 		}
 		writeJSON(w, res.status, res.body)
@@ -69,10 +69,7 @@ func (c *TicketController) get(r *http.Request) (result, error) {
 }
 
 func (c *TicketController) create(r *http.Request) (result, error) {
-	var body struct {
-		Event string       `json:"event"`
-		Price *json.Number `json:"price"`
-	}
+	var body model.CreateTicketRequest
 	if err := decode(r, &body); err != nil {
 		return result{}, err
 	}
@@ -89,16 +86,11 @@ func (c *TicketController) update(r *http.Request) (result, error) {
 	if err != nil {
 		return result{}, err
 	}
-	var body struct {
-		Status         *string      `json:"status"`
-		Event          *string      `json:"event"`
-		Price          *json.Number `json:"price"`
-		ExpectedStatus *string      `json:"expected_status"`
-	}
+	var body model.UpdateTicketRequest
 	if err := decode(r, &body); err != nil {
 		return result{}, err
 	}
-	p := repository.UpdateParams{Status: body.Status, Event: body.Event, ExpectedStatus: body.ExpectedStatus}
+	p := model.UpdateParams{Status: body.Status, Event: body.Event, ExpectedStatus: body.ExpectedStatus}
 	if body.Price != nil {
 		s := body.Price.String()
 		p.Price = &s

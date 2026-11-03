@@ -8,21 +8,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.opentelemetry.io/otel/attribute"
 
+	"ticket-service/internal/model"
 	"ticket-service/internal/tracing"
 )
-
-// Ticket's price is a string to preserve NUMERIC precision (matches the JSON the Node service produced).
-type Ticket struct {
-	ID     int    `json:"id"`
-	Event  string `json:"event"`
-	Price  string `json:"price"`
-	Status string `json:"status"`
-}
-
-type UpdateParams struct {
-	Status, Event, Price *string
-	ExpectedStatus       *string
-}
 
 type TicketRepository struct{ pool *pgxpool.Pool }
 
@@ -30,8 +18,8 @@ func NewTicketRepository(pool *pgxpool.Pool) *TicketRepository { return &TicketR
 
 const cols = "id, event, price::text, status"
 
-func scan(row pgx.Row) (*Ticket, error) {
-	var t Ticket
+func scan(row pgx.Row) (*model.Ticket, error) {
+	var t model.Ticket
 	if err := row.Scan(&t.ID, &t.Event, &t.Price, &t.Status); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -41,9 +29,9 @@ func scan(row pgx.Row) (*Ticket, error) {
 	return &t, nil
 }
 
-func (r *TicketRepository) FindAll(ctx context.Context, status string) ([]Ticket, error) {
+func (r *TicketRepository) FindAll(ctx context.Context, status string) ([]model.Ticket, error) {
 	return tracing.WithSpan(ctx, "TicketRepository.findAll", []attribute.KeyValue{attribute.String("ticket.status", status)},
-		func(ctx context.Context) ([]Ticket, error) {
+		func(ctx context.Context) ([]model.Ticket, error) {
 			var rows pgx.Rows
 			var err error
 			if status != "" {
@@ -55,9 +43,9 @@ func (r *TicketRepository) FindAll(ctx context.Context, status string) ([]Ticket
 				return nil, err
 			}
 			defer rows.Close()
-			tickets := []Ticket{}
+			tickets := []model.Ticket{}
 			for rows.Next() {
-				var t Ticket
+				var t model.Ticket
 				if err := rows.Scan(&t.ID, &t.Event, &t.Price, &t.Status); err != nil {
 					return nil, err
 				}
@@ -67,16 +55,16 @@ func (r *TicketRepository) FindAll(ctx context.Context, status string) ([]Ticket
 		})
 }
 
-func (r *TicketRepository) FindByID(ctx context.Context, id int) (*Ticket, error) {
+func (r *TicketRepository) FindByID(ctx context.Context, id int) (*model.Ticket, error) {
 	return tracing.WithSpan(ctx, "TicketRepository.findById", []attribute.KeyValue{attribute.Int("ticket.id", id)},
-		func(ctx context.Context) (*Ticket, error) {
+		func(ctx context.Context) (*model.Ticket, error) {
 			return scan(r.pool.QueryRow(ctx, "SELECT "+cols+" FROM tickets WHERE id = $1", id))
 		})
 }
 
-func (r *TicketRepository) Insert(ctx context.Context, event, price string) (*Ticket, error) {
+func (r *TicketRepository) Insert(ctx context.Context, event, price string) (*model.Ticket, error) {
 	return tracing.WithSpan(ctx, "TicketRepository.insert", nil,
-		func(ctx context.Context) (*Ticket, error) {
+		func(ctx context.Context) (*model.Ticket, error) {
 			return scan(r.pool.QueryRow(ctx,
 				"INSERT INTO tickets (event, price) VALUES ($1, $2::numeric) RETURNING "+cols, event, price))
 		})
@@ -84,9 +72,9 @@ func (r *TicketRepository) Insert(ctx context.Context, event, price string) (*Ti
 
 // Update is a compare-and-set: it only applies when the current status matches
 // ExpectedStatus (if given). Returns nil if nothing matched.
-func (r *TicketRepository) Update(ctx context.Context, id int, p UpdateParams) (*Ticket, error) {
+func (r *TicketRepository) Update(ctx context.Context, id int, p model.UpdateParams) (*model.Ticket, error) {
 	return tracing.WithSpan(ctx, "TicketRepository.update", []attribute.KeyValue{attribute.Int("ticket.id", id)},
-		func(ctx context.Context) (*Ticket, error) {
+		func(ctx context.Context) (*model.Ticket, error) {
 			return scan(r.pool.QueryRow(ctx, `
 				UPDATE tickets SET
 				  status = COALESCE($2, status),

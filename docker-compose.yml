@@ -52,9 +52,13 @@ services:
       PORT: 3002
       DATABASE_URL: postgres://postgres:postgres@booking-db:5432/bookingdb
       TICKET_SERVICE_URL: http://ticket-service:3001
+      OTEL_SERVICE_NAME: booking-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     depends_on:
       booking-db:
         condition: service_healthy
+      jaeger:
+        condition: service_started
       ticket-service:
         condition: service_started
 
