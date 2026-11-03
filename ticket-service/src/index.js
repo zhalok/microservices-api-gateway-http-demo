@@ -1,6 +1,7 @@
 require("./tracing") // must come first so express/pg get instrumented
 
 const express = require("express")
+const { init } = require("./db")
 const routes = require("./routes")
 
 const app = express()
@@ -26,6 +27,7 @@ app.use((err, _req, res, _next) => {
 })
 
 async function start() {
+  await init()
   const port = process.env.PORT || 3001
   app.listen(port, () => console.log(`ticket-service listening on ${port}`))
 }
