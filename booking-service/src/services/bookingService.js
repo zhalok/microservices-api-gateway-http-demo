@@ -25,10 +25,14 @@ function create({ ticket_id, user_name } = {}) {
     if (ticket.status !== "available")
       throw new HttpError(409, "ticket is already booked")
 
-    // 2. mark as booked (compare-and-set guards against a concurrent booking)
+    // simulating delay to trigger a race condition inconsistency
+
+    if (user_name === (process.env.DELAYED_USER_NAME || "bob"))
+      await new Promise((resolve) => setTimeout(resolve, 5000))
+
+    // 2. mark as booked (no status check, so a concurrent booking can slip through)
     const update = await tickets.patchTicket(ticket_id, {
       status: "booked",
-      expected_status: "available",
     })
     if (update.status === 409)
       throw new HttpError(409, "ticket is already booked")

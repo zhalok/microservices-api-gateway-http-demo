@@ -6,7 +6,7 @@ async function init() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS bookings (
       id SERIAL PRIMARY KEY,
-      ticket_id INTEGER NOT NULL UNIQUE,
+      ticket_id INTEGER NOT NULL,
       user_name TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )

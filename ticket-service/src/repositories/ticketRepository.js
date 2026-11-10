@@ -32,24 +32,18 @@ function insert({ event, price }) {
   })
 }
 
-// Compare-and-set: only updates when the current status matches expectedStatus
-// (if given). Returns the updated row, or undefined if nothing matched.
-function update(id, { status, event, price, expectedStatus }) {
+// Unconditional update (no status check, on purpose, to simulate a race).
+// Returns the updated row, or undefined if the ticket doesn't exist.
+function update(id, { status, event, price }) {
   return withSpan("TicketRepository.update", { "ticket.id": id }, async () => {
     const { rows } = await pool.query(
       `UPDATE tickets SET
          status = COALESCE($2, status),
          event  = COALESCE($3, event),
          price  = COALESCE($4, price)
-       WHERE id = $1 AND ($5::text IS NULL OR status = $5)
+       WHERE id = $1
        RETURNING *`,
-      [
-        id,
-        status ?? null,
-        event ?? null,
-        price ?? null,
-        expectedStatus ?? null,
-      ],
+      [id, status ?? null, event ?? null, price ?? null],
     )
     return rows[0]
   })
