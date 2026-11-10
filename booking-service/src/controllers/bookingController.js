@@ -15,7 +15,7 @@ async function get(req, res) {
 
 async function create(req, res) {
   await withSpan("BookingController.create", {}, async () => {
-    res.status(201).json(await service.create(req.body))
+    res.status(201).json(await service.createWithLock(req.body))
   })
 }
 
