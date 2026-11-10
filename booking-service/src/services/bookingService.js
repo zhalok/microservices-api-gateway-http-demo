@@ -55,7 +55,7 @@ function create({ ticket_id, user_name } = {}) {
 function createWithLock(body = {}) {
   // Without a ticket_id there is nothing to lock; create() rejects it with a 400.
   if (!body.ticket_id) return create(body)
-  return withLock(`lock:ticket:${body.ticket_id}`, () => create(body))
+  return withLock(`lock:ticket:${body.ticket_id}`, () => create(body), body.user_name)
 }
 
 module.exports = { list, get, create, createWithLock }

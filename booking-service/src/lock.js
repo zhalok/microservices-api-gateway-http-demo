@@ -22,8 +22,9 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 // Runs fn while holding the distributed lock `key`. Callers on any
 // booking-service instance are serialized per key.
-async function withLock(key, fn) {
-  const token = crypto.randomUUID()
+// `token` identifies the owner (stored as the key's value); only the owner can
+// release the lock. Defaults to a random UUID.
+async function withLock(key, fn, token = crypto.randomUUID()) {
   const deadline = Date.now() + LOCK_WAIT_MS
 
   await withSpan("Lock.acquire", { "lock.key": key }, async () => {
